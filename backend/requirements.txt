@@ -23,6 +23,7 @@ platformdirs==4.13.5
 pluggy==1.7.0
 pre_commit==4.7.0
 pydantic==2.14.1
+pydantic-settings==2.16.0
 pydantic_core==2.50.1
 Pygments==2.21.0
 pytest==9.1.1
