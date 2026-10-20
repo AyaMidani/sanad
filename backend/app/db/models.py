@@ -10,4 +10,5 @@ class Chunk(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     text: Mapped[str]
     page: Mapped[int]
+    source: Mapped[str]
     embedding: Mapped[list[float]] = mapped_column(Vector(1024))

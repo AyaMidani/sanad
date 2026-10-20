@@ -7,12 +7,12 @@ OVERLAP_LINES = 2
 
 
 @dataclass
-class Chunk:
+class TextChunk:
     text: str
     page: int
 
 
-def chunk_page(page: Page) -> list[Chunk]:
+def chunk_page(page: Page) -> list[TextChunk]:
     chunks = []
     current_lines = []
 
@@ -22,12 +22,12 @@ def chunk_page(page: Page) -> list[Chunk]:
 
         current_text = "\n".join(current_lines)
         if current_lines and len(current_text) + len(line) > MAX_CHARS:
-            chunks.append(Chunk(text=current_text, page=page.number))
+            chunks.append(TextChunk(text=current_text, page=page.number))
             current_lines = current_lines[-OVERLAP_LINES:]
 
         current_lines.append(line)
 
     if current_lines:
-        chunks.append(Chunk(text="\n".join(current_lines), page=page.number))
+        chunks.append(TextChunk(text="\n".join(current_lines), page=page.number))
 
     return chunks
