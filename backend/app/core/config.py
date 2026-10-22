@@ -6,6 +6,7 @@ class Settings(BaseSettings):
 
     database_url: str
     voyage_api_key: str
+    anthropic_api_key: str
 
 
 settings = Settings()
