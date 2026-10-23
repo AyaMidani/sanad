@@ -4,7 +4,7 @@ import anthropic
 
 from app.core.config import settings
 from app.db.models import Chunk
-from app.rag.search import search
+from app.rag.search import hybrid_search
 
 MODEL = "claude-haiku-5-5"
 
@@ -71,7 +71,7 @@ def to_search_result(chunk: Chunk) -> dict:
 
 
 async def ask(question: str) -> Answer:
-    chunks = await search(question)
+    chunks = await hybrid_search(question)
     boxes = [to_search_result(chunk) for chunk in chunks]
 
     response = await client.messages.create(
