@@ -26,6 +26,7 @@ async def grade(question: str, expected: str, answer: str) -> tuple[str, str]:
     response = await client.messages.create(
         model=GRADER_MODEL,
         max_tokens=200,
+        thinking={"type": "disabled"},
         messages=[{"role": "user", "content": prompt}],
     )
 
