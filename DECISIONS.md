@@ -14,3 +14,31 @@
 **Decision:** PostgreSQL with the pgvector extension, run locally with Docker Compose.
 **Why:** Hybrid search needs both vector similarity and keyword search. Postgres does keyword search natively (full-text search) and pgvector adds vector search, so chunks, page numbers, embeddings and both search types live in one table and one query.
 **Trade-off:** Dedicated vector databases (Pinecone, Qdrant) can be faster at very large scale, but would mean running two stores and keeping them in sync. At this project's scale, one database is simpler. Only the database runs in Docker during development; the backend runs from a local venv for faster iteration and will be containerised at deployment.
+
+## 004 — Chunking: size-based, with section headings repeated
+**Decision:** Cut each page into chunks of up to 800 characters on line boundaries, with a 2-line overlap. Detect section headings by relative font size (a line larger than the page's most common size), and repeat the current heading at the top of each chunk that starts mid-section.
+**Why:** Without headings, a chunk split from the middle of a section lost the context of which product it belonged to, so rows with the same name under different products (e.g. "Liability Letter" for cards vs. for finance) looked almost identical to search. Measured on a 15-question golden set (10 English, 5 Arabic):
+
+| | recall@5 | recall@1 |
+|---|---|---|
+| Size-based | 100% | 73% |
+| Size-based + headings | 100% | 87% |
+
+**Trade-off:** A fixed font-size threshold worked on one PDF but failed on the other, so the threshold is relative to each page. Headings don't carry across pages, so text at the top of a page that continues a section from the previous page gets no heading. Two questions still miss rank 1: one is a vocabulary gap (the PDF says "Covered & Charge Cards", never "credit card"), and one where a heading pulls in the wrong chunk ("personal finance" in the question matches the Personal Finance heading on page 7, while the answer is under Customer Services – Finance on page 8).
+
+Size-based chunks (800 chars, 2-line overlap) lost their section heading when a section
+was split across chunks, so the retriever couldn't tell apart rows with the same name
+under different products (e.g. "Liability Letter" for cards vs. finance).
+
+Fix: detect headings by relative font size (larger than the page's most common size),
+and repeat the current heading at the top of each split chunk.
+
+Measured on a 15-question golden set (10 English, 5 Arabic):
+
+| | recall@5 | recall@1 |
+|---|---|---|
+| Size-based | 100% | 73% |
+| Size-based + headings | 100% | 87% |
+
+Remaining misses are vocabulary gaps, not chunking: the PDF says "Covered & Charge Cards",
+never "credit card".
