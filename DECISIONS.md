@@ -42,3 +42,22 @@ Measured on a 15-question golden set (10 English, 5 Arabic):
 
 Remaining misses are vocabulary gaps, not chunking: the PDF says "Covered & Charge Cards",
 never "credit card".
+
+## 005 — Evaluation: retrieval, citation, and model-graded answers
+**Decision:** Evaluate Sanad on a 15-question golden set (10 English, 5 Arabic, including trap questions where the same fee name appears under different products). Three checks: retrieval (is the right page in the top 5, and at rank 1), citation (did Claude cite the right page, checked by code), and answer correctness (graded by Claude Haiku as CORRECT, PARTIAL or WRONG against a reference answer).
+**Why:** Each check catches a different failure. Retrieval failures can't be fixed by the prompt, and answer failures can't be fixed by chunking, so they're measured separately. The grader compares meaning, not text, because a correct answer can be phrased many ways and in either language.
+
+Results, before and after changing the system prompt:
+
+| | Correct | Partial | Wrong | Cited right page |
+|---|---|---|---|---|
+| Original prompt | 12 | 2 | 1 | 100% |
+| Revised prompt (3 runs) | 13–14 | 1–2 | 0 | 93% |
+
+The original prompt said "do not add details the search results do not state." Claude read that as forbidding it from connecting a customer's words ("credit card") to the bank's section names ("Covered & Charge Cards"), so it found the right fee and refused to commit. The revised prompt tells it to match by meaning and use the document's section name, to list each case only when the customer didn't say which product, and to never write file names in the text, so sources come only through citations.
+
+Two bugs were found by the eval along the way: the grader returned no verdict because thinking used its whole token budget (fixed by disabling thinking for the grader), and Arabic answers were cut off for the same reason (fixed by raising `max_tokens` from 1024 to 4096).
+
+**Trade-off:** 15 questions is small. One answer flipping between identical runs moves the score by 7%, so changes were only accepted if they held across more than one run, and prompt tuning stopped once results reached run-to-run noise, to avoid fitting the prompt to these exact questions. Known limitations, both in the data rather than the prompt:
+- The Wajaha PDF shows fees with the new dirham symbol, which is lost in extraction, so answers often say the currency isn't stated.
+- The Murabaha refund rule in the Home Finance PDF is missed in every run, likely because that Arabic table cell is scrambled during extraction.
