@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Computed
+from sqlalchemy import Computed, DateTime, func
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,4 +19,14 @@ class Chunk(Base):
     search_words: Mapped[str] = mapped_column(
         TSVECTOR,
         Computed("to_tsvector('english', replace(text, '/', ' '))", persisted=True),
+    )
+
+
+class AskLog(Base):
+    __tablename__ = "ask_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    ip: Mapped[str] = mapped_column(index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
     )
