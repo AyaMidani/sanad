@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Markdown from "react-markdown";
 import Sidebar from "./components/Sidebar";
-import { loadConversations, saveConversations } from "./storage";
+import {
+  askQuestion,
+  deleteConversation,
+  fetchConversations,
+  fetchMessages,
+} from "./api";
 import type { Conversation, Message } from "./types";
 import "./App.css";
-
-const API_URL = import.meta.env.VITE_API_URL;
 
 const EXAMPLES = [
   "How much does it cost to replace a debit card?",
@@ -13,78 +16,60 @@ const EXAMPLES = [
   "What documents do I need for home finance?",
 ];
 
+function errorText(err: unknown) {
+  return err instanceof Error ? err.message : "Something went wrong.";
+}
+
 function App() {
-  const [conversations, setConversations] =
-    useState<Conversation[]>(loadConversations);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const active = conversations.find((c) => c.id === activeId);
-  const messages = active?.messages ?? [];
 
   useEffect(() => {
-    saveConversations(conversations);
-  }, [conversations]);
+    fetchConversations()
+      .then(setConversations)
+      .catch(() => setConversations([]));
+  }, []);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, loading]);
 
-  function addMessage(id: string, message: Message) {
-    setConversations((all) =>
-      all.map((c) =>
-        c.id === id ? { ...c, messages: [...c.messages, message] } : c
-      )
-    );
-  }
-
   async function send(text: string) {
     const q = text.trim();
     if (!q || loading) return;
 
-    let id = activeId;
-    if (!id) {
-      id = crypto.randomUUID();
-      const conversation: Conversation = {
-        id,
-        title: q.slice(0, 60),
-        createdAt: Date.now(),
-        messages: [],
-      };
-      setConversations((all) => [conversation, ...all]);
-      setActiveId(id);
-    }
-    const conversationId = id;
-
-    addMessage(conversationId, { role: "user", text: q });
+    setMessages((m) => [...m, { role: "user", text: q }]);
     setQuestion("");
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_URL}/ask`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(
-          typeof data.detail === "string" ? data.detail : "Something went wrong."
-        );
+      const result = await askQuestion(q, activeId);
+
+      if (!activeId) {
+        setActiveId(result.conversation_id);
+        setConversations((all) => [
+          {
+            id: result.conversation_id,
+            title: q.slice(0, 60),
+            created_at: new Date().toISOString(),
+          },
+          ...all,
+        ]);
       }
-      addMessage(conversationId, {
-        role: "assistant",
-        text: data.text,
-        sources: data.sources,
-      });
+
+      setMessages((m) => [
+        ...m,
+        { role: "assistant", text: result.text, sources: result.sources },
+      ]);
     } catch (err) {
-      addMessage(conversationId, {
-        role: "error",
-        text: err instanceof Error ? err.message : "Something went wrong.",
-      });
+      setMessages((m) => [...m, { role: "error", text: errorText(err) }]);
     } finally {
       setLoading(false);
     }
@@ -96,18 +81,35 @@ function App() {
   }
 
   function handleNew() {
+    if (loading) return;
     setActiveId(null);
+    setMessages([]);
     setSidebarOpen(false);
   }
 
-  function handleSelect(id: string) {
+  async function handleSelect(id: string) {
+    if (loading) return;
     setActiveId(id);
+    setMessages([]);
     setSidebarOpen(false);
+    try {
+      setMessages(await fetchMessages(id));
+    } catch (err) {
+      setMessages([{ role: "error", text: errorText(err) }]);
+    }
   }
 
-  function handleDelete(id: string) {
-    setConversations((all) => all.filter((c) => c.id !== id));
-    if (id === activeId) setActiveId(null);
+  async function handleDelete(id: string) {
+    try {
+      await deleteConversation(id);
+      setConversations((all) => all.filter((c) => c.id !== id));
+      if (id === activeId) {
+        setActiveId(null);
+        setMessages([]);
+      }
+    } catch {
+      // Delete failed: keep the chat in the list.
+    }
   }
 
   return (
@@ -135,7 +137,7 @@ function App() {
         </header>
 
         <main className="chat">
-          {messages.length === 0 && (
+          {!activeId && messages.length === 0 && (
             <div className="welcome">
               <h2>Ask about DIB cards and home finance</h2>
               <p>
@@ -181,7 +183,7 @@ function App() {
               {m.role === "assistant" ? (
                 <>
                   <Markdown>{m.text}</Markdown>
-                  {m.sources.length > 0 && (
+                  {m.sources && m.sources.length > 0 && (
                     <div className="sources" dir="ltr">
                       {m.sources.map((s) => (
                         <span key={s.number} className="chip">

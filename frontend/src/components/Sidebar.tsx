@@ -30,7 +30,7 @@ export default function Sidebar({
 }: Props) {
   const groups: { label: string; items: Conversation[] }[] = [];
   for (const c of conversations) {
-    const label = groupLabel(c.createdAt);
+    const label = groupLabel(new Date(c.created_at).getTime());
     const last = groups[groups.length - 1];
     if (last && last.label === label) last.items.push(c);
     else groups.push({ label, items: [c] });

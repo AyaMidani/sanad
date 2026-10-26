@@ -8,6 +8,5 @@ export type Message =
 export type Conversation = {
   id: string;
   title: string;
-  createdAt: number;
-  messages: Message[];
+  created_at: string;
 };
