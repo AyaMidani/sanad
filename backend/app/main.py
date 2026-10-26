@@ -7,7 +7,7 @@ app = FastAPI(title="Sanad")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["http://localhost:5173", "https://sanad-kappa-nine.vercel.app"],
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["Content-Type", "X-Visitor-Id"],
 )
