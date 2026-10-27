@@ -13,7 +13,7 @@ async def main():
     first_place = 0
 
     for q in questions:
-        chunks = await hybrid_search(q["question"])
+        chunks = await hybrid_search(q["question"], q.get("segment"))
         found = [(chunk.source, chunk.page) for chunk in chunks]
         expected = (q["source"], q["expected_page"])
 

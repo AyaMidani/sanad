@@ -15,7 +15,7 @@ async def main():
     verdicts = Counter()
 
     for q in questions:
-        answer = await ask(q["question"])
+        answer = await ask(q["question"], q.get("segment"))
         cited = [(source.file, source.title) for source in answer.sources]
         expected = (q["source"], f"Page {q['expected_page']}")
 
