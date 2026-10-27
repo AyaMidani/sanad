@@ -11,9 +11,9 @@ import type { Conversation, Message, Segment } from "./types";
 import "./App.css";
 
 const EXAMPLES = [
-  "How much does it cost to replace a debit card?",
-  "ما هي رسوم استبدال بطاقة الخصم؟",
-  "What documents do I need for home finance?",
+  "How much does it cost to replace a credit card?",
+  "ما هي رسوم الشيك المرتجع؟",
+  "What is the early settlement fee for home finance?",
 ];
 
 // ← new: the customer types, and where the choice is saved
@@ -172,7 +172,7 @@ function App() {
         <main className="chat">
           {!activeId && messages.length === 0 && (
             <div className="welcome">
-              <h2>Ask about DIB cards and home finance</h2>
+              <h2>Ask about Dubai Islamic Bank fees</h2>
               <p>
                 Answers come only from DIB's public documents, with the page
                 they came from.
