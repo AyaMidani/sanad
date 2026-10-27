@@ -25,7 +25,6 @@ async def main():
             print(f"HIT  @{position}  {q['id']}")
         else:
             print("MISS     ", q["id"], "got:", found)
-        await asyncio.sleep(21)
 
     total = len(questions)
     print(f"\nrecall@5: {hits}/{total} = {hits / total:.0%}")

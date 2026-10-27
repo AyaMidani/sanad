@@ -30,8 +30,6 @@ async def main():
         verdicts[verdict] += 1
         print("   ", verdict, "-", reason)
 
-        await asyncio.sleep(21)
-
     total = len(questions)
     print(f"\ncitation accuracy: {correct}/{total} = {correct / total:.0%}")
     print(

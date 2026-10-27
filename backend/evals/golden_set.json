@@ -1,97 +1,97 @@
 [
   {
     "id": "debit-card-lost-en",
-    "question": "How much does it cost to replace a lost debit card?",
+    "question": "I'm a Wajaha customer. How much does it cost to replace a lost debit card?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
-    "expected_page": 6,
+    "source": "dib_wajaha.pdf",
+    "expected_page": 5,
     "expected_answer": "26.25 AED"
   },
   {
     "id": "debit-card-lost-ar",
-    "question": "كم رسوم استبدال بطاقة الخصم إذا ضاعت؟",
+    "question": "أنا زبون وجاهة. كم رسوم استبدال بطاقة الخصم إذا ضاعت؟",
     "language": "ar",
-    "source": "dib_wajaha_en.pdf",
-    "expected_page": 6,
+    "source": "dib_wajaha.pdf",
+    "expected_page": 5,
     "expected_answer": "26.25 AED"
   },
   {
     "id": "credit-card-replacement-en",
-    "question": "What do I pay if I need a new credit card because mine was lost?",
+    "question": "I'm a Wajaha customer. What do I pay if I need a new credit card because mine was lost?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
+    "source": "dib_wajaha.pdf",
     "expected_page": 5,
     "expected_answer": "52.50 AED"
   },
   {
     "id": "liability-letter-card-en",
-    "question": "Is there a charge for a liability letter on my credit card?",
+    "question": "I'm a Wajaha customer. Is there a charge for a liability letter on my credit card?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
+    "source": "dib_wajaha.pdf",
     "expected_page": 5,
     "expected_answer": "52.50 AED per request"
   },
   {
     "id": "late-payment-card-en",
-    "question": "What happens if I pay my card late, is there a penalty?",
+    "question": "I'm a Wajaha customer. What happens if I pay my card late, is there a penalty?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
+    "source": "dib_wajaha.pdf",
     "expected_page": 5,
     "expected_answer": "236.25 AED donation undertaking per instance"
   },
   {
     "id": "bounced-cheque-en",
-    "question": "My cheque bounced because there wasn't enough money in the account. What's the charge?",
+    "question": "I'm a Wajaha customer. My cheque bounced because there wasn't enough money in the account. What's the charge?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
+    "source": "dib_wajaha.pdf",
     "expected_page": 1,
     "expected_answer": "105 AED"
   },
   {
     "id": "account-closure-en",
-    "question": "Do I pay anything if I close my account within the first six months?",
+    "question": "I'm a Wajaha customer. Do I pay anything if I close my account within the first six months?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
+    "source": "dib_wajaha.pdf",
     "expected_page": 2,
     "expected_answer": "Free"
   },
   {
     "id": "atm-outside-gcc-ar",
-    "question": "كم بدفع إذا سحبت مصاري ببطاقة الخصم من صراف آلي برا الإمارات والخليج؟",
+    "question": "أنا زبون وجاهة. كم بدفع إذا سحبت مصاري ببطاقة الخصم من صراف آلي برا الإمارات والخليج؟",
     "language": "ar",
-    "source": "dib_wajaha_en.pdf",
-    "expected_page": 6,
+    "source": "dib_wajaha.pdf",
+    "expected_page": 5,
     "expected_answer": "21 AED per transaction"
   },
   {
     "id": "personal-loan-reschedule-en",
-    "question": "How much does it cost to reschedule my personal loan?",
+    "question": "I'm a Wajaha customer. How much does it cost to reschedule my personal loan?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
-    "expected_page": 7,
+    "source": "dib_wajaha.pdf",
+    "expected_page": 6,
     "expected_answer": "262.50 AED"
   },
   {
     "id": "small-locker-ar",
-    "question": "كم سعر خزنة الأمانات الصغيرة؟",
+    "question": "أنا زبون وجاهة. كم سعر خزنة الأمانات الصغيرة؟",
     "language": "ar",
-    "source": "dib_wajaha_en.pdf",
-    "expected_page": 8,
+    "source": "dib_wajaha.pdf",
+    "expected_page": 7,
     "expected_answer": "525 AED at other branches, 1,575 AED at Shaikh Zayed Road branch"
   },
   {
     "id": "liability-letter-finance-en",
-    "question": "What's the fee for a liability letter for my personal finance?",
+    "question": "I'm a Wajaha customer. What's the fee for a liability letter for my personal finance?",
     "language": "en",
-    "source": "dib_wajaha_en.pdf",
-    "expected_page": 8,
+    "source": "dib_wajaha.pdf",
+    "expected_page": 7,
     "expected_answer": "63 AED"
   },
   {
     "id": "home-early-settlement-ar",
     "question": "كم رسوم السداد المبكر للتمويل السكني بالإجارة؟",
     "language": "ar",
-    "source": "dib_home_finance_ar_en.pdf",
+    "source": "dib_home_finance.pdf",
     "expected_page": 1,
     "expected_answer": "1.05% of the outstanding amount or 10,500 AED, whichever is less"
   },
@@ -99,7 +99,7 @@
     "id": "home-valuation-en",
     "question": "How much is the property valuation fee in the Northern Emirates?",
     "language": "en",
-    "source": "dib_home_finance_ar_en.pdf",
+    "source": "dib_home_finance.pdf",
     "expected_page": 1,
     "expected_answer": "3,000 AED"
   },
@@ -107,7 +107,7 @@
     "id": "liability-certificate-home-en",
     "question": "How much is a liability certificate for my home finance?",
     "language": "en",
-    "source": "dib_home_finance_ar_en.pdf",
+    "source": "dib_home_finance.pdf",
     "expected_page": 1,
     "expected_answer": "89.25 AED"
   },
@@ -115,7 +115,7 @@
     "id": "home-cancel-before-approval-ar",
     "question": "إذا لغيت طلب التمويل السكني قبل الموافقة، بيرجعولي المصاري؟",
     "language": "ar",
-    "source": "dib_home_finance_ar_en.pdf",
+    "source": "dib_home_finance.pdf",
     "expected_page": 1,
     "expected_answer": "Ijara: 1,075 AED retained, rest refunded. Murabaha: 50% refunded"
   }

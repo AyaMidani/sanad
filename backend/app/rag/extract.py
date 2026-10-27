@@ -16,7 +16,7 @@ class Page:
 
 
 def fix_dirham(text: str) -> str:
-    return re.sub(r"\bD(?=\d)", "AED ", text)
+    return re.sub(r"\bD ?(?=\d)", "AED ", text)
 
 
 def extract_pages(pdf_path: Path) -> list[Page]:
