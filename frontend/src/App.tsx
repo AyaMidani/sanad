@@ -7,7 +7,7 @@ import {
   fetchConversations,
   fetchMessages,
 } from "./api";
-import type { Conversation, Message } from "./types";
+import type { Conversation, Message, Segment } from "./types";
 import "./App.css";
 
 const EXAMPLES = [
@@ -15,6 +15,26 @@ const EXAMPLES = [
   "ما هي رسوم استبدال بطاقة الخصم؟",
   "What documents do I need for home finance?",
 ];
+
+// ← new: the customer types, and where the choice is saved
+const SEGMENT_KEY = "sanad.segment";
+
+const SEGMENTS: { value: Segment; label: string }[] = [
+  { value: "standard", label: "Standard" },
+  { value: "wajaha", label: "Wajaha" },
+  { value: "aayan", label: "Aayan" },
+  { value: "business", label: "Business" },
+];
+
+// ← new: read the saved choice, or null for "All customers"
+function loadSegment(): Segment | null {
+  try {
+    const saved = localStorage.getItem(SEGMENT_KEY);
+    return SEGMENTS.some((s) => s.value === saved) ? (saved as Segment) : null;
+  } catch {
+    return null;
+  }
+}
 
 function errorText(err: unknown) {
   return err instanceof Error ? err.message : "Something went wrong.";
@@ -27,6 +47,7 @@ function App() {
   const [question, setQuestion] = useState("");
   const [loading, setLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [segment, setSegment] = useState<Segment | null>(loadSegment); // ← new
   const bottomRef = useRef<HTMLDivElement>(null);
 
   const active = conversations.find((c) => c.id === activeId);
@@ -41,6 +62,18 @@ function App() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages.length, loading]);
 
+  // ← new: update the choice and remember it
+  function changeSegment(value: string) {
+    const next = value === "" ? null : (value as Segment);
+    setSegment(next);
+    try {
+      if (next) localStorage.setItem(SEGMENT_KEY, next);
+      else localStorage.removeItem(SEGMENT_KEY);
+    } catch {
+      // storage blocked: the choice still works for this visit
+    }
+  }
+
   async function send(text: string) {
     const q = text.trim();
     if (!q || loading) return;
@@ -50,7 +83,7 @@ function App() {
     setLoading(true);
 
     try {
-      const result = await askQuestion(q, activeId);
+      const result = await askQuestion(q, activeId, segment); // ← new: segment
 
       if (!activeId) {
         setActiveId(result.conversation_id);
@@ -208,6 +241,20 @@ function App() {
         </main>
 
         <form className="composer" onSubmit={handleSubmit}>
+          {/* ← new: customer type picker */}
+          <select
+            className="segment"
+            value={segment ?? ""}
+            onChange={(e) => changeSegment(e.target.value)}
+            aria-label="Customer type"
+          >
+            <option value="">All customers</option>
+            {SEGMENTS.map((s) => (
+              <option key={s.value} value={s.value}>
+                {s.label}
+              </option>
+            ))}
+          </select>
           <input
             dir="auto"
             value={question}

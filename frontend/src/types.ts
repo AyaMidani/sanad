@@ -10,3 +10,5 @@ export type Conversation = {
   title: string;
   created_at: string;
 };
+
+export type Segment = "standard" | "wajaha" | "aayan" | "business";

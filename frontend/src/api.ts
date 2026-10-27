@@ -1,4 +1,4 @@
-import type { Conversation, Message, Source } from "./types";
+import type { Conversation, Message, Segment, Source } from "./types";
 
 const API_URL = import.meta.env.VITE_API_URL;
 const VISITOR_KEY = "sanad.visitorId";
@@ -58,9 +58,13 @@ export function deleteConversation(conversationId: string) {
   });
 }
 
-export function askQuestion(question: string, conversationId: string | null) {
+export function askQuestion(
+  question: string,
+  conversationId: string | null,
+  segment: Segment | null,
+) {
   return request<AskResult>("/ask", {
     method: "POST",
-    body: JSON.stringify({ question, conversation_id: conversationId }),
+    body: JSON.stringify({ question, conversation_id: conversationId, segment }),
   });
 }
