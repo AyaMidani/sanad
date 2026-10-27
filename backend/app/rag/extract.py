@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -14,18 +15,22 @@ class Page:
     headings: list[str]
 
 
+def fix_dirham(text: str) -> str:
+    return re.sub(r"\bD(?=\d)", "AED ", text)
+
+
 def extract_pages(pdf_path: Path) -> list[Page]:
     pages = []
     with pymupdf.open(pdf_path) as doc:
         for index, page in enumerate(doc):
-            text = fix_lam_alef(page.get_text())
+            text = fix_dirham(fix_lam_alef(page.get_text()))  # ←
 
             lines = read_lines(page)
             body = body_size(lines)
             headings = []
             for line_text, size in lines:
                 if size > body:
-                    headings.append(fix_lam_alef(line_text))
+                    headings.append(fix_dirham(fix_lam_alef(line_text)))  # ←
 
             pages.append(Page(number=index + 1, text=text, headings=headings))
     return pages
