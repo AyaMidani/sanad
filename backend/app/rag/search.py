@@ -5,44 +5,42 @@ from app.db.session import SessionLocal
 from app.rag.embeddings import embed_query
 
 TOP_K = 5
-
 RRF_K = 60
+
+
+async def search(question: str, segment: str | None = None) -> list[Chunk]:
+    question_vector = embed_query(question)
+    statement = select(Chunk).order_by(Chunk.embedding.cosine_distance(question_vector))
+    if segment:
+        statement = statement.where(Chunk.segment.in_([segment, "all"]))
+    async with SessionLocal() as session:
+        result = await session.scalars(statement.limit(TOP_K))
+        return list(result)
+
 
 WORD_SEARCH_SQL = """
 SELECT chunks.*
 FROM chunks,
      to_tsquery('english', replace(plainto_tsquery('english', :q)::text, '&', '|')) AS query
 WHERE search_words @@ query
+  AND (CAST(:segment AS text) IS NULL OR segment IN (:segment, 'all'))
 ORDER BY ts_rank(search_words, query) DESC
 LIMIT :k
 """
 
 
-async def word_search(question: str) -> list[Chunk]:
+async def word_search(question: str, segment: str | None = None) -> list[Chunk]:
     async with SessionLocal() as session:
         statement = select(Chunk).from_statement(
-            text(WORD_SEARCH_SQL).bindparams(q=question, k=TOP_K)
+            text(WORD_SEARCH_SQL).bindparams(q=question, k=TOP_K, segment=segment)
         )
         result = await session.scalars(statement)
         return list(result)
 
 
-async def search(question: str) -> list[Chunk]:
-    question_vector = embed_query(question)
-
-    async with SessionLocal() as session:
-        query = (
-            select(Chunk)
-            .order_by(Chunk.embedding.cosine_distance(question_vector))
-            .limit(TOP_K)
-        )
-        result = await session.scalars(query)
-        return list(result)
-
-
-async def hybrid_search(question: str) -> list[Chunk]:
-    meaning_results = await search(question)
-    word_results = await word_search(question)
+async def hybrid_search(question: str, segment: str | None = None) -> list[Chunk]:
+    meaning_results = await search(question, segment)
+    word_results = await word_search(question, segment)
 
     points = {}
     chunks_by_id = {}

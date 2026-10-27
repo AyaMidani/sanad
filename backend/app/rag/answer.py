@@ -73,8 +73,8 @@ def to_search_result(chunk: Chunk) -> dict:
     }
 
 
-async def ask(question: str) -> Answer:
-    chunks = await hybrid_search(question)
+async def ask(question: str, segment: str | None = None):
+    chunks = await hybrid_search(question, segment)
     boxes = [to_search_result(chunk) for chunk in chunks]
 
     response = await client.messages.create(

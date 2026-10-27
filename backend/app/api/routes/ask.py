@@ -1,5 +1,5 @@
 from dataclasses import asdict
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Header, HTTPException, Request
 from sqlalchemy import func, select
@@ -23,7 +23,7 @@ async def ask_question(
 ) -> AskResponse:
     forwarded = request.headers.get("x-forwarded-for")
     ip = forwarded.split(",")[0].strip() if forwarded else request.client.host
-    one_hour_ago = datetime.now(timezone.utc) - timedelta(hours=1)
+    one_hour_ago = datetime.now(UTC) - timedelta(hours=1)
 
     async with SessionLocal() as session:
         count = await session.scalar(
@@ -58,7 +58,7 @@ async def ask_question(
         conversation_id = conversation.id
 
     try:
-        answer = await ask(body.question)
+        answer = await ask(body.question, body.segment)
     except RateLimitError:
         raise HTTPException(
             status_code=503,

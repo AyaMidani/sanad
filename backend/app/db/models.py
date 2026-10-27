@@ -16,6 +16,7 @@ class Chunk(Base):
     text: Mapped[str]
     page: Mapped[int]
     source: Mapped[str]
+    segment: Mapped[str] = mapped_column(server_default="all")
     embedding: Mapped[list[float]] = mapped_column(Vector(1024))
     search_words: Mapped[str] = mapped_column(
         TSVECTOR,

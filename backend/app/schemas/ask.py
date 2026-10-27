@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -6,6 +7,7 @@ from pydantic import BaseModel
 class AskRequest(BaseModel):
     question: str
     conversation_id: uuid.UUID | None = None
+    segment: Literal["wajaha", "aayan", "standard", "business"] | None = None
 
 
 class SourceOut(BaseModel):
