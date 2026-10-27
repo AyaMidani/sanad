@@ -26,23 +26,6 @@
 
 **Trade-off:** A fixed font-size threshold worked on one PDF but failed on the other, so the threshold is relative to each page. Headings don't carry across pages, so text at the top of a page that continues a section from the previous page gets no heading. Two questions still miss rank 1: one is a vocabulary gap (the PDF says "Covered & Charge Cards", never "credit card"), and one where a heading pulls in the wrong chunk ("personal finance" in the question matches the Personal Finance heading on page 7, while the answer is under Customer Services – Finance on page 8).
 
-Size-based chunks (800 chars, 2-line overlap) lost their section heading when a section
-was split across chunks, so the retriever couldn't tell apart rows with the same name
-under different products (e.g. "Liability Letter" for cards vs. finance).
-
-Fix: detect headings by relative font size (larger than the page's most common size),
-and repeat the current heading at the top of each split chunk.
-
-Measured on a 15-question golden set (10 English, 5 Arabic):
-
-| | recall@5 | recall@1 |
-|---|---|---|
-| Size-based | 100% | 73% |
-| Size-based + headings | 100% | 87% |
-
-Remaining misses are vocabulary gaps, not chunking: the PDF says "Covered & Charge Cards",
-never "credit card".
-
 ## 005 — Evaluation: retrieval, citation, and model-graded answers
 **Decision:** Evaluate Sanad on a 15-question golden set (10 English, 5 Arabic, including trap questions where the same fee name appears under different products). Three checks: retrieval (is the right page in the top 5, and at rank 1), citation (did Claude cite the right page, checked by code), and answer correctness (graded by Claude Haiku as CORRECT, PARTIAL or WRONG against a reference answer).
 **Why:** Each check catches a different failure. Retrieval failures can't be fixed by the prompt, and answer failures can't be fixed by chunking, so they're measured separately. The grader compares meaning, not text, because a correct answer can be phrased many ways and in either language.
@@ -59,5 +42,11 @@ The original prompt said "do not add details the search results do not state." C
 Two bugs were found by the eval along the way: the grader returned no verdict because thinking used its whole token budget (fixed by disabling thinking for the grader), and Arabic answers were cut off for the same reason (fixed by raising `max_tokens` from 1024 to 4096).
 
 **Trade-off:** 15 questions is small. One answer flipping between identical runs moves the score by 7%, so changes were only accepted if they held across more than one run, and prompt tuning stopped once results reached run-to-run noise, to avoid fitting the prompt to these exact questions. Known limitations, both in the data rather than the prompt:
-- The Wajaha PDF shows fees with the new dirham symbol, which is lost in extraction, so answers often say the currency isn't stated.
+- The Wajaha PDF shows fees with the new dirham symbol, which extraction reads as the letter "D" (`D105.00`, sometimes `D 175`). Fixed at extraction by converting "D" followed by a number into "AED".
 - The Murabaha refund rule in the Home Finance PDF is missed in every run, likely because that Arabic table cell is scrambled during extraction.
+
+## 006 — Filter search by customer segment
+**Decision:** Each chunk stores a `segment` (wajaha, aayan, standard, business, or all), set at ingest from `data/documents.json`. Search only looks at the customer's segment plus shared documents. The customer picks their segment in the chat.
+**Why:** Adding 7 more DIB documents dropped recall@1 from 87% to 47%. The same fees appear in several customer schedules (Wajaha, Aayan, standard), so they competed for the top results. With the filter, recall@1 went to 80%, recall@5 to 93%, and 12/15 answers were fully correct.
+**Trade-off:** Every new PDF needs one line in `documents.json`. The segment is a fact from the bank, so it's set by hand instead of guessed by a model.
+**Tried and dropped:** Contextual retrieval (Claude writes a description at the top of each chunk). Every card chunk got "credit card" in its description, so the word stopped telling chunks apart, and recall@5 fell to 73%.
