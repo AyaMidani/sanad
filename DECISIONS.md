@@ -50,3 +50,15 @@ Two bugs were found by the eval along the way: the grader returned no verdict be
 **Why:** Adding 7 more DIB documents dropped recall@1 from 87% to 47%. The same fees appear in several customer schedules (Wajaha, Aayan, standard), so they competed for the top results. With the filter, recall@1 went to 80%, recall@5 to 93%, and 12/15 answers were fully correct.
 **Trade-off:** Every new PDF needs one line in `documents.json`. The segment is a fact from the bank, so it's set by hand instead of guessed by a model.
 **Tried and dropped:** Contextual retrieval (Claude writes a description at the top of each chunk). Every card chunk got "credit card" in its description, so the word stopped telling chunks apart, and recall@5 fell to 73%.
+
+## 007 — Agent mode: Claude decides the searches
+**Decision:** Claude gets hybrid search as a tool (`search_documents`, inputs: a search query and an optional segment) and decides how many searches to run, with which words, and in which segment, for up to 5 rounds. If the customer picked a segment in the chat, it's passed to Claude as a hint in the question, not as a fixed filter, so Claude can still search other segments to compare. The `/ask` route uses the agent behind a backend switch (`USE_AGENT`); the one-search `ask()` stays so both modes can be compared in the eval.
+**Why:** One search can't answer a comparison across segments ("Is replacing a debit card cheaper for Wajaha than for standard customers?" needs one search per segment), and when the first search misses, the one-search mode has no second try. Measured on the same 15-question golden set, one run each:
+
+| | Correct | Partial | Wrong | Cited right page |
+|---|---|---|---|---|
+| One search | 12 | 2 | 1 | 87% |
+| Agent | 13 | 2 | 0 | 100% |
+
+The credit card replacement fee (52.50) wasn't in the 5 chunks one search returned, so the answer said it couldn't find it. The agent searched again and found it. No question got worse, and the two partials are the same in both modes (the extraction issues in 005).
+**Trade-off:** At least 2 Claude calls per question instead of 1, more for comparisons, and each round resends the whole conversation, so answers cost more and take longer. Each search also uses a Voyage embedding call. Using the agent is a backend decision, not a choice in the chat, because a customer can't be expected to know which mode fits their question. One run per mode on 15 questions is within run-to-run noise, but the direction is clear: fewer wrong answers, better citations, nothing worse. Known issue: Claude sometimes copies raw PDF text into the answer, including an Arabic word ("مجانًا") inside an English answer.

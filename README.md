@@ -9,7 +9,8 @@ A bilingual (Arabic / English) assistant that answers questions about Dubai Isla
 - **Cited answers.** Every fee in an answer links to the PDF and page it came from.
 - **Arabic and English.** Ask in either language; an Arabic question can be answered from an English document.
 - **No guessing.** If the documents don't contain the answer, Sanad says so.
-- **Customer type.** Wajaha, Aayan, standard and business customers pay different fees for the same service. The customer picks their type, and Sanad searches only their schedule plus the documents shared by everyone.
+- **Customer type.** Wajaha, Aayan, standard and business customers pay different fees for the same service. The customer can pick their type, and Sanad searches their schedule plus the documents shared by everyone.
+- **Comparisons and second tries.** Claude decides which searches to run, so it can compare a fee across customer types ("Is replacing a debit card cheaper for Wajaha than for standard?"), or search again with different words when the first search misses.
 
 Sanad covers 9 current DIB documents (October 2026): five schedules of charges, two card Key Facts Statements, and two warnings documents.
 
@@ -18,13 +19,16 @@ Sanad covers 9 current DIB documents (October 2026): five schedules of charges, 
 ```
 PDF → pages → chunks (+ section headings) → Voyage embeddings → Postgres (pgvector + full-text)
                                                                        ↓
-question → hybrid search (meaning + keywords, merged with RRF, filtered by customer type)
+question → Claude decides what to search (agent, up to 5 rounds)
+                ↓                                   ↑
+          hybrid search (meaning + keywords, merged with RRF, filtered by customer type)
                                                                        ↓
-                               Claude answers from the top 5 chunks, with page citations
+                               Claude answers from the search results, with page citations
 ```
 
 - **Ingestion:** PyMuPDF extracts each page. Arabic letter-order errors and the new dirham symbol are fixed during extraction. Pages are cut into 800-character chunks, and each chunk keeps its section heading, detected by font size.
 - **Search:** vector search (Voyage `voyage-4`) and Postgres full-text search run side by side and are merged with Reciprocal Rank Fusion.
+- **Agent:** Claude gets hybrid search as a tool. It chooses the search words and customer type, runs as many searches as the question needs, then answers. A one-search mode is kept behind a backend switch for comparison.
 - **Answering:** Claude receives the chunks as search results with citations enabled, so page numbers come from the API, not from generated text.
 
 ## Evaluation
@@ -35,8 +39,8 @@ A 15-question golden set (10 English, 5 Arabic), including trap questions where 
 |---|---|
 | Right page in top 5 (recall@5) | 93% |
 | Right page ranked first (recall@1) | 80% |
-| Claude cited the right page | 87% |
-| Answers graded correct by Claude Haiku | 12 of 15 (2 partial, 1 wrong) |
+| Claude cited the right page | 100% (one-search mode: 87%) |
+| Answers graded correct by Claude Haiku | 13 of 15, 2 partial, 0 wrong (one-search mode: 12, 2 partial, 1 wrong) |
 
 Every design choice, including what was tried and dropped and why, is recorded with its numbers in [DECISIONS.md](DECISIONS.md).
 
@@ -90,6 +94,8 @@ Run the evaluation from `backend`:
 python -m evals.run_retrieval
 python -m evals.run_answers
 ```
+
+`run_answers` uses the agent by default. Set `USE_AGENT = False` in `evals/run_answers.py` to evaluate the one-search mode.
 
 ## About
 
