@@ -3,10 +3,12 @@ import json
 from collections import Counter
 from pathlib import Path
 
+from app.rag.agent import ask_agent
 from app.rag.answer import ask
 from evals.grader import grade
 
 GOLDEN_SET = Path(__file__).parent / "golden_set.json"
+USE_AGENT = True
 
 
 async def main():
@@ -15,7 +17,10 @@ async def main():
     verdicts = Counter()
 
     for q in questions:
-        answer = await ask(q["question"], q.get("segment"))
+        if USE_AGENT:
+            answer = await ask_agent(q["question"], q.get("segment"))
+        else:
+            answer = await ask(q["question"], q.get("segment"))
         cited = [(source.file, source.title) for source in answer.sources]
         expected = (q["source"], f"Page {q['expected_page']}")
 
@@ -31,6 +36,7 @@ async def main():
         print("   ", verdict, "-", reason)
 
     total = len(questions)
+    print("\nmode:", "agent" if USE_AGENT else "normal")
     print(f"\ncitation accuracy: {correct}/{total} = {correct / total:.0%}")
     print(
         f"answers: {verdicts['CORRECT']} correct, {verdicts['PARTIAL']} partial, {verdicts['WRONG']} wrong"

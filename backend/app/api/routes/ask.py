@@ -7,12 +7,14 @@ from voyageai.error import RateLimitError
 
 from app.db.models import AskLog, ChatMessage, Conversation
 from app.db.session import SessionLocal
+from app.rag.agent import ask_agent
 from app.rag.answer import ask
 from app.schemas.ask import AskRequest, AskResponse
 
 router = APIRouter()
 
 MAX_QUESTIONS_PER_HOUR = 10
+USE_AGENT = True
 
 
 @router.post("/ask")
@@ -58,7 +60,10 @@ async def ask_question(
         conversation_id = conversation.id
 
     try:
-        answer = await ask(body.question, body.segment)
+        if USE_AGENT:
+            answer = await ask_agent(body.question, body.segment)
+        else:
+            answer = await ask(body.question, body.segment)
     except RateLimitError:
         raise HTTPException(
             status_code=503,
